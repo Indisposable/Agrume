@@ -39,6 +39,7 @@ public final class Agrume: UIViewController {
   public var didScroll: ((_ index: Int) -> Void)?
   /// An optional download handler. Passed the URL that is supposed to be loaded. Call the completion with the image
   /// when the download is done.
+  public var cacheDownload: ((_ url: URL, _ completion: @escaping DownloadCompletion, _ cacheMiss: @escaping (() -> Void)) -> Void)?
   public var download: ((_ url: URL, _ completion: @escaping DownloadCompletion) -> Void)?
   /// Status bar style when presenting
   public var statusBarStyle: UIStatusBarStyle? {
@@ -48,6 +49,8 @@ public final class Agrume: UIViewController {
   }
   /// Hide status bar when presenting. Defaults to `false`
   public var hideStatusBar = false
+  
+  public var hideHomeIndicator = true
 
   /// Default tap behaviour is to dismiss the view if zoomed out
   public var tapBehavior: TapBehavior = .dismissIfZoomedOut
@@ -363,6 +366,10 @@ public final class Agrume: UIViewController {
     hideStatusBar
   }
   
+  public override var prefersHomeIndicatorAutoHidden: Bool {
+    hideHomeIndicator
+  }
+  
   private func scrollToImage(atIndex index: Int, animated: Bool = false) {
     collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .centeredHorizontally, animated: animated)
   }
@@ -408,7 +415,14 @@ extension Agrume: AgrumeDataSource {
   public func image(forIndex index: Int, completion: @escaping (UIImage?) -> Void) {
     let downloadHandler = download ?? AgrumeServiceLocator.shared.downloadHandler
     if let handler = downloadHandler, let url = images[index].url {
-      handler(url, completion)
+      if let cacheDownloadHandler = cacheDownload {
+        cacheDownloadHandler(url, completion, {
+          self.spinner.alpha = 1
+          handler(url, completion)
+        })
+      } else {
+        handler(url, completion)
+      }
     } else if let url = images[index].url {
       downloadTask = ImageDownloader.downloadImage(url, completion: completion)
     } else {
@@ -434,12 +448,12 @@ extension Agrume: UICollectionViewDataSource {
     case .withButton:
       cell.hasPhysics = false
     }
-
-    spinner.alpha = 1
+    
     fetchImage(forIndex: indexPath.item) { [weak self] image in
       cell.image = image
       self?.spinner.alpha = 0
     }
+    
     // Only allow panning if horizontal swiping fails. Horizontal swiping is only active for zoomed in images
     collectionView.panGestureRecognizer.require(toFail: cell.swipeGesture)
     cell.delegate = self
