@@ -4,7 +4,6 @@
 
 import ImageIO
 import MobileCoreServices
-import SwiftyGif
 import UIKit
 
 final class ImageDownloader {
@@ -21,11 +20,8 @@ final class ImageDownloader {
       guard let data = data, error == nil else {
         return
       }
-      if isAnimatedImage(data) {
-        image = try? UIImage(gifData: data)
-      } else {
-        image = UIImage(data: data)
-      }
+      
+      image = UIImage(data: data)
     }
     task.resume()
     return task

@@ -2,7 +2,6 @@
 //  Copyright © 2016 Schnaub. All rights reserved.
 //
 
-import SwiftyGif
 import UIKit
 
 protocol AgrumeCellDelegate: AnyObject {
@@ -56,11 +55,7 @@ final class AgrumeCell: UICollectionViewCell {
 
   var image: UIImage? {
     didSet {
-      if image?.imageData != nil, let image = image {
-        imageView.setGifImage(image)
-      } else {
-        imageView.image = image
-      }
+      imageView.image = image
       updateScrollViewAndImageViewForCurrentMetrics()
     }
   }
@@ -334,7 +329,7 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
 
   private func updateScrollViewAndImageViewForCurrentMetrics() {
     scrollView.frame = contentView.frame
-    if let image = imageView.image ?? imageView.currentImage {
+    if let image = imageView.image {
       imageView.frame = resizedFrame(forSize: image.size)
     }
     scrollView.contentSize = imageView.bounds.size
@@ -384,6 +379,7 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
       let modifier = UIDynamicItemBehavior(items: [imageView])
       modifier.angularResistance = angularResistance(in: imageView)
       modifier.density = density(in: imageView)
+      modifier.allowsRotation = false
       animator!.addBehavior(modifier)
     }
   }
