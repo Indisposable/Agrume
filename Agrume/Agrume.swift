@@ -446,8 +446,6 @@ extension Agrume: UICollectionViewDataSource {
       cell.hasPhysics = false
     }
     
-    cell.dismissSwipeBehavior = dismissSwipeBehavior
-    
     fetchImage(forIndex: indexPath.item) { [weak self] image in
       cell.image = image
       self?.spinner.alpha = 0
@@ -465,10 +463,6 @@ extension Agrume: UICollectionViewDataSource {
         handler(image)
       }
     }
-  }
-  
-  private func dismissSwipeBehavior(_ percentageToBottom: CGFloat) {
-    self.blurContainerView.alpha = 1 - percentageToBottom
   }
 }
 
@@ -550,6 +544,17 @@ extension Agrume: AgrumeCellDelegate {
                       overlayView.alpha = overlayView.alpha < 0.5 ? 1 : 0
                     }
     }, completion: nil)
+  }
+  
+  func dismissSwipeBehavior(_ percentToBottom: CGFloat) {
+    // want opacity to decrease faster at first
+    let logPercent = log10(percentToBottom * 10)
+    self.blurContainerView.alpha = 1 - logPercent
+  }
+  
+  func cancelDismissSwipeBehavior() {
+    self.blurContainerView.alpha = 1
+    self.containerView.transform = .identity
   }
 }
 

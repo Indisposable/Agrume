@@ -11,6 +11,8 @@ protocol AgrumeCellDelegate: AnyObject {
   func dismissAfterFlick()
   func dismissAfterTap()
   func toggleOverlayVisibility()
+  func dismissSwipeBehavior(_ percentToBottom: CGFloat)
+  func cancelDismissSwipeBehavior()
 }
 
 final class AgrumeCell: UICollectionViewCell {
@@ -52,6 +54,7 @@ final class AgrumeCell: UICollectionViewCell {
   private var imageDragStartingPoint: CGPoint!
   private var imageDragOffsetFromActualTranslation: UIOffset!
   private var imageDragOffsetFromImageCenter: UIOffset!
+  private var originalImageViewSize: CGSize!
   private var attachmentBehavior: UIAttachmentBehavior?
 
   var image: UIImage? {
@@ -242,7 +245,7 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
     if gesture.state == .began {
       isDraggingImage = imageView.frame.contains(locationInView)
       if isDraggingImage {
-        startImageDragging(locationInView, translationOffset: .zero)
+        startImageDragging(locationInView, translationOffset: .zero, imageViewSize: self.imageView.bounds.size)
       }
     } else if gesture.state == .changed {
       if isDraggingImage {
@@ -250,16 +253,22 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
         newAnchor?.x += translation.x + imageDragOffsetFromActualTranslation.horizontal
         newAnchor?.y += translation.y + imageDragOffsetFromActualTranslation.vertical
         attachmentBehavior?.anchorPoint = newAnchor!
+        var percentToVerticalEdge: CGFloat
         
-        if let dismissSwipeBehavior = self.dismissSwipeBehavior {
+        if translation.y > 0 {
           let totalPossibleDistance = self.imageView.frame.maxY - imageDragStartingPoint!.y
-          dismissSwipeBehavior(translation.y / totalPossibleDistance)
+          percentToVerticalEdge = translation.y / totalPossibleDistance
+        } else {
+          let totalPossibleDistance = imageDragStartingPoint!.y - self.imageView.frame.minY
+          percentToVerticalEdge = (translation.y * -1) / totalPossibleDistance
         }
+        
+        self.delegate!.dismissSwipeBehavior(percentToVerticalEdge)
       } else {
         isDraggingImage = imageView.frame.contains(locationInView)
         if isDraggingImage {
           let translationOffset = UIOffset(horizontal: -1 * translation.x, vertical: -1 * translation.y)
-          startImageDragging(locationInView, translationOffset: translationOffset)
+          startImageDragging(locationInView, translationOffset: translationOffset, imageViewSize: self.imageView.bounds.size)
         }
       }
     } else {
@@ -271,6 +280,7 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
         }
       } else {
         cancelCurrentImageDrag(true)
+        self.delegate!.cancelDismissSwipeBehavior()
       }
     }
   }
@@ -370,9 +380,10 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
     return frame.integral
   }
 
-  private func startImageDragging(_ locationInView: CGPoint, translationOffset: UIOffset) {
-    imageDragStartingPoint = locationInView
-    imageDragOffsetFromActualTranslation = translationOffset
+  private func startImageDragging(_ locationInView: CGPoint, translationOffset: UIOffset, imageViewSize: CGSize) {
+    self.imageDragStartingPoint = locationInView
+    self.imageDragOffsetFromActualTranslation = translationOffset
+    self.originalImageViewSize = imageViewSize
 
     let anchor = imageDragStartingPoint
     let imageCenter = imageView.center
