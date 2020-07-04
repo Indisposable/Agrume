@@ -6,6 +6,6 @@ import Foundation
 
 extension TimeInterval {
   
-  static let transitionAnimationDuration: TimeInterval = 0.3
+  static let transitionAnimationDuration: TimeInterval = 0.18
   
 }

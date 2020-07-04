@@ -308,9 +308,9 @@ public final class Agrume: UIViewController {
                        delay: 0,
                        options: .beginFromCurrentState,
                        animations: {
-                        self.containerView.alpha = 1
                         self.containerView.transform = .identity
                         self.addOverlayView()
+                        self.containerView.alpha = 1
         }, completion: { _ in
           self.view.isUserInteractionEnabled = true
         })
@@ -446,6 +446,8 @@ extension Agrume: UICollectionViewDataSource {
       cell.hasPhysics = false
     }
     
+    cell.dismissSwipeBehavior = dismissSwipeBehavior
+    
     fetchImage(forIndex: indexPath.item) { [weak self] image in
       cell.image = image
       self?.spinner.alpha = 0
@@ -464,7 +466,10 @@ extension Agrume: UICollectionViewDataSource {
       }
     }
   }
-
+  
+  private func dismissSwipeBehavior(_ percentageToBottom: CGFloat) {
+    self.blurContainerView.alpha = 1 - percentageToBottom
+  }
 }
 
 extension Agrume: UICollectionViewDelegate {

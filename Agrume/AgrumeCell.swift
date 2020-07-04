@@ -17,6 +17,7 @@ final class AgrumeCell: UICollectionViewCell {
 
   var tapBehavior: Agrume.TapBehavior = .dismissIfZoomedOut
   var hasPhysics = true
+  var dismissSwipeBehavior: ((CGFloat) -> Void)?
 
   private lazy var scrollView = with(UIScrollView()) { scrollView in
     scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -232,6 +233,7 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
     if !hasPhysics {
       return
     }
+    
     let translation = gesture.translation(in: gesture.view!)
     let locationInView = gesture.location(in: gesture.view)
     let velocity = gesture.velocity(in: gesture.view)
@@ -248,6 +250,11 @@ extension AgrumeCell: UIGestureRecognizerDelegate {
         newAnchor?.x += translation.x + imageDragOffsetFromActualTranslation.horizontal
         newAnchor?.y += translation.y + imageDragOffsetFromActualTranslation.vertical
         attachmentBehavior?.anchorPoint = newAnchor!
+        
+        if let dismissSwipeBehavior = self.dismissSwipeBehavior {
+          let totalPossibleDistance = self.imageView.frame.maxY - imageDragStartingPoint!.y
+          dismissSwipeBehavior(translation.y / totalPossibleDistance)
+        }
       } else {
         isDraggingImage = imageView.frame.contains(locationInView)
         if isDraggingImage {
