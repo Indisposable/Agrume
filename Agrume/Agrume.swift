@@ -278,6 +278,9 @@ public final class Agrume: UIViewController {
     guard gesture.state == .began else {
       return
     }
+    
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    
     fetchImage(forIndex: currentIndex) { [weak self] image in
       guard let self = self else {
         return
