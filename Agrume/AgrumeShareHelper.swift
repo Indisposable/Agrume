@@ -19,7 +19,7 @@ public final class AgrumeShareHelper: NSObject {
       return
     }
     
-    let activityController = UIActivityViewController(activityItems: [ImageItemSource(image: image, title: self.title)], applicationActivities: nil)
+    let activityController = UIActivityViewController(activityItems: [ImageItemSource(image: image, title: self.title)], applicationActivities: [PostToInstaUIActivity()])
     viewController.present(activityController, animated: true)
   }
   
@@ -47,6 +47,32 @@ public final class AgrumeShareHelper: NSObject {
       metadata.title = self.title
       
       return metadata
+    }
+  }
+  
+  final class PostToInstaUIActivity: UIActivity {
+    static let activityType = UIActivity.ActivityType.init("postToInsta")
+    
+    override var activityType: UIActivity.ActivityType? {
+      get {
+        PostToInstaUIActivity.activityType
+      }
+    }
+    
+    override var activityTitle: String? {
+      get {
+        "Post To Instagram"
+      }
+    }
+    
+    override var activityImage: UIImage? {
+      get {
+        UIImage(named: "instagram", in: Bundle(for: AgrumeShareHelper.self), compatibleWith: nil)
+      }
+    }
+    
+    override func canPerform(withActivityItems activityItems: [Any]) -> Bool {
+      true
     }
   }
 }
