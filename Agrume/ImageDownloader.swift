@@ -39,7 +39,7 @@ final class ImageDownloader {
     guard let imageSource = CGImageSourceCreateWithData(data as CFData, nil),
           let imageType = CGImageSourceGetType(imageSource) else {
             return false
-    }
+          }
     return UTTypeConformsTo(imageType, kUTTypeGIF)
   }
 
